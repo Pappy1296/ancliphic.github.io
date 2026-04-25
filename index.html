@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ancliphic — Intelligent Clipboard Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c10;
+      --surface:   #0d1117;
+      --surface2:  #161b22;
+      --border:    #21262d;
+      --accent:    #4f8ef7;
+      --accent2:   #3fb950;
+      --accent3:   #bc8cff;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --danger:    #f85149;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Noise overlay ───────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(8,12,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: var(--accent);
+      color: #fff !important;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-weight: 500 !important;
+      transition: opacity 0.2s !important;
+    }
+
+    .nav-cta:hover { opacity: 0.85; color: #fff !important; }
+
+    /* ── Hero ────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(79,142,247,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-glow-2 {
+      position: absolute;
+      top: 40%;
+      left: 30%;
+      width: 400px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(188,140,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(79,142,247,0.1);
+      border: 1px solid rgba(79,142,247,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      max-width: 900px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent), var(--accent3));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      margin-top: 24px;
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.8;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-sub strong {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 40px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      padding: 14px 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      font-weight: 400;
+      font-size: 0.95rem;
+      transition: color 0.2s, border-color 0.2s, transform 0.2s;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--muted);
+      transform: translateY(-1px);
+    }
+
+    /* ── App preview ─────────────────────────────────────── */
+    .app-preview {
+      margin-top: 80px;
+      width: 100%;
+      max-width: 1000px;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .app-window {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .window-bar {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot-r { background: #f85149; }
+    .dot-y { background: #d29922; }
+    .dot-g { background: #3fb950; }
+
+    .window-title {
+      flex: 1;
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .window-body {
+      display: grid;
+      grid-template-columns: 180px 1fr 1fr;
+      height: 340px;
+    }
+
+    .panel {
+      border-right: 1px solid var(--border);
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .panel:last-child { border-right: none; }
+
+    .panel-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .tag-item {
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      margin-bottom: 2px;
+    }
+
+    .tag-item.active { background: var(--surface2); color: var(--accent); }
+
+    .tag-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+    .clip-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 6px;
+      font-size: 0.75rem;
+    }
+
+    .clip-card.selected { border-color: var(--accent); }
+
+    .clip-card-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .clip-tag { color: var(--accent); font-size: 0.65rem; font-weight: 600; }
+    .clip-time { color: var(--muted); font-size: 0.65rem; }
+    .clip-title { color: var(--text); font-size: 0.78rem; }
+
+    .diff-line {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+    }
+
+    .diff-add { color: var(--accent2); background: rgba(63,185,80,0.08); }
+    .diff-rem { color: var(--danger); background: rgba(248,81,73,0.08); }
+    .diff-ctx { color: var(--muted); }
+
+    /* ── Section ─────────────────────────────────────────── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 520px;
+      line-height: 1.8;
+      margin-bottom: 60px;
+    }
+
+    /* ── Features ────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      padding: 36px 32px;
+      transition: background 0.2s;
+    }
+
+    .feature-card:hover { background: var(--surface2); }
+
+    .feature-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    /* ── Subway viz ──────────────────────────────────────── */
+    .subway-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .subway-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .subway-line {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .subway-node {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .subway-connector {
+      height: 2px;
+      flex: 1;
+      max-width: 40px;
+    }
+
+    .subway-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+
+    .subway-label strong { color: var(--text); font-weight: 400; }
+
+    .branch-indent {
+      margin-left: 48px;
+    }
+
+    /* ── Pricing ─────────────────────────────────────────── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .pricing-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 28px;
+      position: relative;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .pricing-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      background: rgba(79,142,247,0.04);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 100px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .pricing-tier {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+
+    .pricing-price {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2.5rem;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .pricing-price span {
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .pricing-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+
+    .pricing-features li {
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--accent2);
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .pricing-features li.muted::before { content: '—'; color: var(--border); }
+    .pricing-features li.muted { opacity: 0.5; }
+
+    .btn-pricing {
+      display: block;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: opacity 0.2s;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-pricing:hover { opacity: 0.8; }
+    .btn-pricing.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── Etymology ───────────────────────────────────────── */
+    .etymology {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .etymology::before {
+      content: 'ἀνά';
+      position: absolute;
+      top: -20px; left: -10px;
+      font-size: 8rem;
+      color: var(--border);
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    .etymology-word {
+      font-family: 'Syne', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .etymology-word .part { position: relative; display: inline-block; }
+    .etymology-word .part-1 { color: var(--accent); }
+    .etymology-word .part-2 { color: var(--text); }
+    .etymology-word .part-3 { color: var(--accent3); }
+
+    .etymology-desc {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    .etymology-roots {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-top: 24px;
+    }
+
+    .root {
+      text-align: center;
+    }
+
+    .root-greek {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.2rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .root-meaning {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Footer ──────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .footer-logo span { color: var(--accent); }
+
+    /* ── Animations ──────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .subway-section { grid-template-columns: 1fr; }
+      .window-body { grid-template-columns: 120px 1fr; }
+      .panel:last-child { display: none; }
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="nav-logo">Ancl<span>iphic</span></a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#" class="nav-cta">Get Early Access</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow-2"></div>
+
+  <div class="badge">Early Access — Coming Soon</div>
+
+  <h1>Your clipboard,<br /><em>with memory</em></h1>
+
+  <p class="hero-sub">
+    Ancliphic is a <strong>self-hosted, intelligent clipboard manager</strong> that records, versions, and branches every clip — so nothing you copy is ever truly lost.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#" class="btn-primary">Get Early Access</a>
+    <a href="https://github.com" class="btn-ghost">View on GitHub →</a>
+  </div>
+
+  <!-- App preview -->
+  <div class="app-preview">
+    <div class="app-window">
+      <div class="window-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="window-title">Ancliphic</div>
+      </div>
+      <div class="window-body">
+        <!-- Tags -->
+        <div class="panel">
+          <div class="panel-label">Tags</div>
+          <div class="tag-item active"><span class="tag-dot" style="background:#4f8ef7"></span>Python dev</div>
+          <div class="tag-item"><span class="tag-dot" style="background:#3fb950"></span>Snippets</div>
+          <div class="tag-item"><span class="tag-dot" style="background:#f85149"></span>Bugs</div>
+          <div class="tag-item"><span class="tag-dot" style="background:#d29922"></span>Research</div>
+          <div class="tag-item"><span class="tag-dot" style="background:#bc8cff"></span>Ideas</div>
+        </div>
+        <!-- Clips -->
+        <div class="panel">
+          <div class="panel-label">Clips</div>
+          <div class="clip-card selected">
+            <div class="clip-card-top">
+              <span class="clip-tag">● Python dev</span>
+              <span class="clip-time">2 min ago</span>
+            </div>
+            <div class="clip-title">async def fetch_user_data()</div>
+          </div>
+          <div class="clip-card">
+            <div class="clip-card-top">
+              <span class="clip-tag">● Python dev</span>
+              <span class="clip-time">14 min ago</span>
+            </div>
+            <div class="clip-title">class DatabaseManager:</div>
+          </div>
+          <div class="clip-card">
+            <div class="clip-card-top">
+              <span class="clip-tag">● Snippets</span>
+              <span class="clip-time">1 hr ago</span>
+            </div>
+            <div class="clip-title">SELECT * FROM users WHERE...</div>
+          </div>
+        </div>
+        <!-- Diff -->
+        <div class="panel">
+          <div class="panel-label">Changes — v3 → v4</div>
+          <div class="diff-line diff-rem">- async def fetch_user(id):</div>
+          <div class="diff-line diff-add">+ async def fetch_user_data(user_id: int):</div>
+          <div class="diff-line diff-ctx">    conn = get_db()</div>
+          <div class="diff-line diff-rem">-     return conn.execute(query)</div>
+          <div class="diff-line diff-add">+     return conn.execute(query, [user_id])</div>
+          <div class="diff-line diff-ctx">    .fetchone()</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Etymology -->
+<section>
+  <div class="etymology reveal">
+    <div class="etymology-word">
+      <span class="part part-1">An</span><span class="part part-2">clip</span><span class="part part-3">hic</span>
+    </div>
+    <div class="etymology-roots">
+      <div class="root">
+        <div class="root-greek">ἀνά</div>
+        <div class="root-meaning">recollection / back</div>
+      </div>
+      <div class="root">
+        <div class="root-greek">clip</div>
+        <div class="root-meaning">to capture</div>
+      </div>
+      <div class="root">
+        <div class="root-greek">γραφή</div>
+        <div class="root-meaning">to record / inscribe</div>
+      </div>
+    </div>
+    <p class="etymology-desc" style="margin-top:24px">
+      From the Greek roots for recollection and inscription — Ancliphic represents an intelligent, structured approach to capturing and retrieving what matters.
+    </p>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="section-label reveal">Features</div>
+  <h2 class="reveal">Everything a clipboard<br />should have been</h2>
+  <p class="section-sub reveal">Built for developers who copy with intent.</p>
+
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(79,142,247,0.12)">📋</div>
+      <h3>Intelligent Capture</h3>
+      <p>Every clip is automatically categorised by content type — code, URLs, emails, plain text — with full version history from the first copy.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(63,185,80,0.12)">🔀</div>
+      <h3>Git-style Versioning</h3>
+      <p>Every change to a clip is tracked. Browse the full history, view coloured diffs between versions, and restore any previous state instantly.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(188,140,255,0.12)">🚇</div>
+      <h3>Subway Branch View</h3>
+      <p>Visualise how your clips evolved with a subway-style branch diagram. Fork a clip, experiment, then merge the best version back to main.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(210,153,34,0.12)">🏷️</div>
+      <h3>Tag & Organise</h3>
+      <p>Colour-coded tags keep clips organised by project, language, or context. The inbox holds untagged clips until you're ready to file them.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(248,81,73,0.12)">🔍</div>
+      <h3>Full-text Search</h3>
+      <p>Search across all clips and tags instantly. Filter by date, content type, or tag to find exactly what you need when you need it.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:rgba(79,142,247,0.12)">🔒</div>
+      <h3>Self-hosted & Private</h3>
+      <p>Your clips never leave your machine. Enterprise tier adds encrypted database storage and hidden DB location for maximum security.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Subway viz section -->
+<section id="how">
+  <div class="subway-section">
+    <div>
+      <div class="section-label reveal">Branch Visualisation</div>
+      <h2 class="reveal">Version control,<br />finally visible</h2>
+      <p class="section-sub reveal">
+        Most clipboard managers show you a flat list. Ancliphic shows you the full story — how a snippet evolved, where it branched, and which version won.
+      </p>
+    </div>
+    <div class="subway-diagram reveal">
+      <div class="panel-label" style="margin-bottom:20px">Clip #42 — async def fetch_user()</div>
+
+      <div class="subway-line">
+        <div class="subway-node" style="border-color:#4f8ef7; background:#4f8ef7"></div>
+        <div class="subway-connector" style="background:#4f8ef7"></div>
+        <span class="subway-label"><strong>v1</strong> — Initial capture</span>
+      </div>
+      <div class="subway-line">
+        <div class="subway-node" style="border-color:#4f8ef7; background:#4f8ef7"></div>
+        <div class="subway-connector" style="background:#4f8ef7"></div>
+        <span class="subway-label"><strong>v2</strong> — Added type hints</span>
+      </div>
+      <div class="subway-line">
+        <div class="subway-node" style="border-color:#4f8ef7; background:transparent"></div>
+        <div class="subway-connector" style="background:#4f8ef7"></div>
+        <span class="subway-label"><strong>v3</strong> main — Renamed param</span>
+      </div>
+      <div class="subway-line branch-indent">
+        <div class="subway-node" style="border-color:#3fb950; background:#3fb950"></div>
+        <div class="subway-connector" style="background:#3fb950"></div>
+        <span class="subway-label" style="color:#3fb950"><strong>v3a</strong> — Try recursion</span>
+      </div>
+      <div class="subway-line branch-indent">
+        <div class="subway-node" style="border-color:#bc8cff; background:#bc8cff"></div>
+        <div class="subway-connector" style="background:#bc8cff"></div>
+        <span class="subway-label" style="color:#bc8cff"><strong>v3b</strong> — Try iteration ✓</span>
+      </div>
+      <div class="subway-line">
+        <div class="subway-node" style="border-color:#4f8ef7; background:#4f8ef7"></div>
+        <div class="subway-connector" style="background:#4f8ef7"></div>
+        <span class="subway-label"><strong>v4</strong> — Merged v3b → main</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+  <div class="section-label reveal">Pricing</div>
+  <h2 class="reveal">Simple, honest pricing</h2>
+  <p class="section-sub reveal">Start free. Upgrade when you're ready.</p>
+
+  <div class="pricing-grid reveal">
+    <!-- Free -->
+    <div class="pricing-card">
+      <div class="pricing-tier">Free</div>
+      <div class="pricing-price">$0</div>
+      <p class="pricing-desc">For personal use, forever. No account required.</p>
+      <ul class="pricing-features">
+        <li>500 clips</li>
+        <li>500 MB storage</li>
+        <li>Full version history</li>
+        <li>Tags & search</li>
+        <li class="muted">Sync across devices</li>
+        <li class="muted">Subway branch view</li>
+        <li class="muted">Encrypted database</li>
+      </ul>
+      <a href="#" class="btn-pricing">Download Free</a>
+    </div>
+
+    <!-- Pro -->
+    <div class="pricing-card featured">
+      <div class="pricing-badge">Most Popular</div>
+      <div class="pricing-tier">Pro</div>
+      <div class="pricing-price">$5<span>/mo</span></div>
+      <p class="pricing-desc">For developers who clip seriously. $40/yr billed annually.</p>
+      <ul class="pricing-features">
+        <li>Unlimited clips</li>
+        <li>Unlimited storage</li>
+        <li>Full version history</li>
+        <li>Tags & search</li>
+        <li>Sync across devices</li>
+        <li>Subway branch view</li>
+        <li class="muted">Encrypted database</li>
+      </ul>
+      <a href="#" class="btn-pricing primary">Get Pro</a>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="pricing-card">
+      <div class="pricing-tier">Enterprise</div>
+      <div class="pricing-price">$9<span>/user/mo</span></div>
+      <p class="pricing-desc">For teams and orgs with security requirements.</p>
+      <ul class="pricing-features">
+        <li>Everything in Pro</li>
+        <li>Encrypted database</li>
+        <li>Hidden DB location</li>
+        <li>Admin controls</li>
+        <li>Audit logs</li>
+        <li>Priority support</li>
+        <li>Custom deployment</li>
+      </ul>
+      <a href="#" class="btn-pricing">Contact Us</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">Ancl<span>iphic</span></div>
+  <div>© 2026 Ancliphic. All rights reserved.</div>
+  <div>
+    <a href="https://github.com" style="color:var(--muted);text-decoration:none;margin-left:24px">GitHub</a>
+    <a href="mailto:hello@ancliphic.com" style="color:var(--muted);text-decoration:none;margin-left:24px">hello@ancliphic.com</a>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
