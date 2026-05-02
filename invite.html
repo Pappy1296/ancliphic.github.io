@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ancliphic — Early Access</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c10;
+      --surface:   #0d1117;
+      --surface2:  #161b22;
+      --border:    #21262d;
+      --accent:    #4f8ef7;
+      --accent2:   #3fb950;
+      --accent3:   #bc8cff;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --danger:    #f85149;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    .glow {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(79,142,247,0.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(8,12,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 52px 48px;
+      width: 100%;
+      max-width: 480px;
+      margin: 0 24px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-icon {
+      width: 48px; height: 48px;
+      background: rgba(79,142,247,0.12);
+      border: 1px solid rgba(79,142,247,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 28px;
+    }
+
+    .card-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="email"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
+    }
+
+    input[type="email"]::placeholder { color: var(--muted); opacity: 0.5; }
+
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .error-msg {
+      display: none;
+      background: rgba(248,81,73,0.08);
+      border: 1px solid rgba(248,81,73,0.25);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 16px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .error-msg.visible { display: block; animation: fadeUp 0.3s ease both; }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--text); }
+
+    footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border);
+      background: rgba(8,12,16,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Ancl<span>iphic</span></a>
+</nav>
+
+<div class="card">
+  <div class="card-icon">🔑</div>
+  <div class="card-label">Early Access</div>
+  <h1>Enter your invite</h1>
+  <p class="subtitle">
+    Ancliphic is currently invite-only. Enter the email address you were invited with to continue.
+  </p>
+
+  <div class="input-group">
+    <label for="email">Invite email address</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+  </div>
+
+  <button class="btn" onclick="checkInvite()">Continue →</button>
+
+  <div class="error-msg" id="error-msg">
+    ✕ &nbsp;That email isn't on the invite list. Contact <a href="mailto:hello@ancliphic.com" style="color:var(--danger)">hello@ancliphic.com</a> to request access.
+  </div>
+
+  <a href="index.html" class="back-link">← Back to homepage</a>
+</div>
+
+<footer>
+  <span>© 2026 Ancliphic</span>
+  <span>Private Beta — v0.1.0</span>
+</footer>
+
+<script>
+  // ── Invited emails ─────────────────────────────────────────────────────────
+  // Add invited email addresses here (lowercase)
+  const INVITED = [
+    "test@example.com",
+    // add more emails here
+  ];
+
+  function checkInvite() {
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const errorMsg = document.getElementById('error-msg');
+
+    if (!email) {
+      errorMsg.textContent = '✕  Please enter your email address.';
+      errorMsg.classList.add('visible');
+      return;
+    }
+
+    if (INVITED.includes(email)) {
+      // Store approval in session so disclaimer page can verify
+      sessionStorage.setItem('ancliphic_invited', email);
+      window.location.href = 'disclaimer.html';
+    } else {
+      errorMsg.innerHTML = '✕ &nbsp;That email isn\'t on the invite list. Contact <a href="mailto:hello@ancliphic.com" style="color:var(--danger)">hello@ancliphic.com</a> to request access.';
+      errorMsg.classList.add('visible');
+    }
+  }
+
+  // Allow Enter key to submit
+  document.getElementById('email').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkInvite();
+  });
+</script>
+
+</body>
+</html>

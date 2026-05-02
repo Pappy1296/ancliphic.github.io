@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ancliphic — Beta Disclaimer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c10;
+      --surface:   #0d1117;
+      --surface2:  #161b22;
+      --border:    #21262d;
+      --accent:    #4f8ef7;
+      --accent2:   #3fb950;
+      --accent3:   #bc8cff;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --danger:    #f85149;
+      --warning:   #d29922;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 100px 24px 80px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    .glow {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(210,153,34,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(8,12,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--accent); }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 52px 48px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-icon {
+      width: 48px; height: 48px;
+      background: rgba(210,153,34,0.12);
+      border: 1px solid rgba(210,153,34,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 28px;
+    }
+
+    .card-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--warning);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+
+    .disclaimer-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--warning);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin-bottom: 28px;
+    }
+
+    .disclaimer-box h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--warning);
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .disclaimer-box ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .disclaimer-box ul li {
+      font-size: 0.85rem;
+      color: var(--muted);
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.6;
+    }
+
+    .disclaimer-box ul li:last-child { border-bottom: none; }
+
+    .disclaimer-box ul li::before {
+      content: '⚠';
+      font-size: 0.75rem;
+      color: var(--warning);
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 24px;
+      cursor: pointer;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 3px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      cursor: pointer;
+    }
+
+    .checkbox-group label strong { color: var(--text); font-weight: 400; }
+
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .btn.enabled {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .btn.enabled:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--text); }
+
+    footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border);
+      background: rgba(8,12,16,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<div class="glow"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Ancl<span>iphic</span></a>
+</nav>
+
+<div class="card">
+  <div class="card-icon">⚠️</div>
+  <div class="card-label">Beta Software</div>
+  <h1>Before you download</h1>
+
+  <div class="disclaimer-box">
+    <h3>Important — Please read carefully</h3>
+    <ul>
+      <li>This is early beta software. Bugs, crashes, and unexpected behaviour should be expected.</li>
+      <li>Your clip data may be lost during updates. Always back up your database before updating.</li>
+      <li>Ancliphic is provided as-is with no warranty or guarantee of any kind.</li>
+      <li>The developer accepts no liability for data loss, system issues, or any other damages arising from use of this software.</li>
+      <li>As a beta tester, your feedback helps shape the final product. Please report bugs to <a href="mailto:hello@ancliphic.com" style="color:var(--accent)">hello@ancliphic.com</a>.</li>
+    </ul>
+  </div>
+
+  <div class="checkbox-group">
+    <input type="checkbox" id="accept" onchange="toggleBtn()" />
+    <label for="accept">
+      I understand this is <strong>beta software</strong>, that my data may be lost, and that I use it <strong>at my own risk</strong>. I accept these terms.
+    </label>
+  </div>
+
+  <button class="btn" id="download-btn" onclick="proceed()">
+    Accept & Continue to Download →
+  </button>
+
+  <a href="invite.html" class="back-link">← Back</a>
+</div>
+
+<footer>
+  <span>© 2026 Ancliphic</span>
+  <span>Private Beta — v0.1.0</span>
+</footer>
+
+<script>
+  // Guard — redirect back if not invited
+  if (!sessionStorage.getItem('ancliphic_invited')) {
+    window.location.href = 'invite.html';
+  }
+
+  function toggleBtn() {
+    const btn = document.getElementById('download-btn');
+    const checked = document.getElementById('accept').checked;
+    btn.classList.toggle('enabled', checked);
+  }
+
+  function proceed() {
+    sessionStorage.setItem('ancliphic_accepted', 'true');
+    window.location.href = 'download.html';
+  }
+</script>
+
+</body>
+</html>
