@@ -269,38 +269,54 @@
 </footer>
 
 <script>
-  // ── Invited emails ─────────────────────────────────────────────────────────
-  // Add invited email addresses here (lowercase)
-  const INVITED = [
-    "test@example.com",
-    // add more emails here
-  ];
+  const WORKER_URL = 'https://divine-poetry-22e2.andrevw001.workers.dev/';
 
-  function checkInvite() {
+  async function checkInvite() {
     const email = document.getElementById('email').value.trim().toLowerCase();
     const errorMsg = document.getElementById('error-msg');
+    const btn = document.querySelector('.btn');
 
     if (!email) {
-      errorMsg.textContent = '✕  Please enter your email address.';
+      errorMsg.innerHTML = '✕  Please enter your email address.';
       errorMsg.classList.add('visible');
       return;
     }
 
-    if (INVITED.includes(email)) {
-      // Store approval in session so disclaimer page can verify
-      sessionStorage.setItem('ancliphic_invited', email);
-      window.location.href = 'disclaimer.html';
-    } else {
-      errorMsg.innerHTML = '✕ &nbsp;That email isn\'t on the invite list. Contact <a href="mailto:hello@ancliphic.com" style="color:var(--danger)">hello@ancliphic.com</a> to request access.';
+    btn.textContent = 'Checking...';
+    btn.style.opacity = '0.6';
+    btn.style.pointerEvents = 'none';
+
+    try {
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const { allowed } = await response.json();
+
+      if (allowed) {
+        sessionStorage.setItem('ancliphic_invited', email);
+        window.location.href = 'disclaimer.html';
+      } else {
+        errorMsg.innerHTML = '✕ &nbsp;That email isn\'t on the invite list. Contact <a href="mailto:hello@ancliphic.com" style="color:var(--danger)">hello@ancliphic.com</a> to request access.';
+        errorMsg.classList.add('visible');
+        btn.textContent = 'Continue →';
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'all';
+      }
+    } catch (err) {
+      errorMsg.innerHTML = '✕ &nbsp;Something went wrong. Please try again.';
       errorMsg.classList.add('visible');
+      btn.textContent = 'Continue →';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'all';
     }
   }
 
-  // Allow Enter key to submit
   document.getElementById('email').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') checkInvite();
   });
 </script>
-
 </body>
 </html>
