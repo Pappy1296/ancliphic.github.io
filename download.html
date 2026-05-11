@@ -185,27 +185,27 @@
     <div class="download-btn-left">
       <div class="download-btn-icon">🐧</div>
       <div>
-        <div class="download-btn-label">Download for Linux</div>
-        <div class="download-btn-sub">ancliphic-0.1.0-beta-linux.tar.gz</div>
+        <div class="download-btn-label">Install on Linux (Flatpak)</div>
+        <div class="download-btn-sub">ancliphic.flatpakref</div>
       </div>
     </div>
     <div class="download-btn-arrow">↓</div>
   </a>
   <div class="install-block">
-    <div class="install-block-label">After downloading, open a terminal and run:</div>
+    <div class="install-block-label">Click the button above to download the Flatpak installer, then:</div>
     <div class="install-steps">
       <div class="install-step">
         <span class="step-num">1</span>
         <div class="cmd-row">
-          <span class="cmd-text">cd ~/Downloads && tar -xzf ancliphic-0.1.0-beta-linux.tar.gz</span>
-          <button class="copy-btn" onclick="copyCmd(this,'cd ~/Downloads && tar -xzf ancliphic-0.1.0-beta-linux.tar.gz')">copy</button>
+          <span class="cmd-text">cd ~/Downloads && tar -xzf ancliphic.flatpakref</span>
+          <button class="copy-btn" onclick="copyCmd(this,'cd ~/Downloads && tar -xzf ancliphic.flatpakref')">copy</button>
         </div>
       </div>
       <div class="install-step">
         <span class="step-num">2</span>
         <div class="cmd-row">
-          <span class="cmd-text">cd ancliphic && bash install.sh</span>
-          <button class="copy-btn" onclick="copyCmd(this,'cd ancliphic && bash install.sh')">copy</button>
+          <span class="cmd-text">flatpak run com.ancliphic.App</span>
+          <button class="copy-btn" onclick="copyCmd(this,'flatpak run com.ancliphic.App')">copy</button>
         </div>
       </div>
     </div>
@@ -234,7 +234,7 @@
   if (!sessionStorage.getItem('ancliphic_accepted')) {
     window.location.href = 'invite.html';
   }
-  document.getElementById('linux-btn').href = 'https://pub-f05a4877c56f4ea795d8bfd7fc08518c.r2.dev/ancliphic-0.1.0-beta-linux.tar.gz';
+  document.getElementById('linux-btn').href = 'https://pub-f05a4877c56f4ea795d8bfd7fc08518c.r2.dev/ancliphic.flatpakref';
   function copyCmd(btn, text) {
     navigator.clipboard.writeText(text).then(() => {
       btn.textContent = 'copied!';
