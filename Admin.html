@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ancliphic — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#080c10;--surface:#0d1117;--surface2:#161b22;--border:#21262d;
+      --accent:#4f8ef7;--accent2:#3fb950;--text:#e6edf3;--muted:#8b949e;
+      --danger:#f85149;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 40px 24px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 48px;
+      width: 100%; max-width: 560px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.6rem;
+      margin-bottom: 8px;
+    }
+    .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+    .input-row {
+      display: flex; gap: 8px; margin-bottom: 24px;
+    }
+    input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 11px 16px; color: var(--text);
+      font-family: 'DM Mono', monospace; font-size: 0.9rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); opacity: 0.5; }
+    .btn {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 8px; padding: 11px 20px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn.danger { background: var(--danger); }
+    .email-list { display: flex; flex-direction: column; gap: 8px; }
+    .email-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 16px;
+    }
+    .email-item span { font-family: 'DM Mono', monospace; font-size: 0.85rem; }
+    .remove-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); font-size: 0.75rem; padding: 3px 10px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .remove-btn:hover { border-color: var(--danger); color: var(--danger); }
+    .empty { color: var(--muted); font-size: 0.85rem; font-family: 'DM Mono', monospace; }
+    .msg {
+      padding: 10px 16px; border-radius: 8px; font-size: 0.85rem;
+      margin-bottom: 16px; display: none;
+    }
+    .msg.success { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.25); color: var(--accent2); display: block; }
+    .msg.error { background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.25); color: var(--danger); display: block; }
+    #login-section { }
+    #admin-section { display: none; }
+    .section-label {
+      font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Login -->
+  <div id="login-section">
+    <h1>Admin Access</h1>
+    <p class="subtitle">Enter your admin password to manage invite emails.</p>
+    <div class="msg" id="login-msg"></div>
+    <div class="input-row">
+      <input type="password" id="password-input" placeholder="Admin password" />
+      <button class="btn" onclick="login()">Unlock</button>
+    </div>
+  </div>
+
+  <!-- Admin panel -->
+  <div id="admin-section">
+    <h1>Invite Manager</h1>
+    <p class="subtitle">Add or remove emails from the invite list.</p>
+
+    <div class="msg" id="admin-msg"></div>
+
+    <div class="section-label">Add Email</div>
+    <div class="input-row">
+      <input type="email" id="new-email" placeholder="user@example.com" />
+      <button class="btn" onclick="addEmail()">Add</button>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section-label">Invite List</div>
+    <div class="email-list" id="email-list">
+      <span class="empty">Loading...</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const WORKER_URL = 'https://divine-poetry-22e2.andrevw001.workers.dev';
+  let adminPassword = '';
+
+  async function login() {
+    const pw = document.getElementById('password-input').value;
+    const msg = document.getElementById('login-msg');
+
+    try {
+      const res = await fetch(WORKER_URL + '/admin/list', {
+        headers: { 'X-Admin-Password': pw }
+      });
+      const data = await res.json();
+      if (res.status === 401) {
+        msg.textContent = '✕ Incorrect password.';
+        msg.className = 'msg error';
+        return;
+      }
+      adminPassword = pw;
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('admin-section').style.display = 'block';
+      renderEmails(data.emails);
+    } catch (e) {
+      msg.textContent = '✕ Could not connect to server.';
+      msg.className = 'msg error';
+    }
+  }
+
+  function renderEmails(emails) {
+    const list = document.getElementById('email-list');
+    if (!emails || emails.length === 0) {
+      list.innerHTML = '<span class="empty">No emails on the invite list.</span>';
+      return;
+    }
+    list.innerHTML = emails.map(e => `
+      <div class="email-item">
+        <span>${e}</span>
+        <button class="remove-btn" onclick="removeEmail('${e}')">Remove</button>
+      </div>
+    `).join('');
+  }
+
+  async function addEmail() {
+    const email = document.getElementById('new-email').value.trim();
+    const msg = document.getElementById('admin-msg');
+    if (!email) return;
+
+    const res = await fetch(WORKER_URL + '/admin/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    renderEmails(data.emails);
+    document.getElementById('new-email').value = '';
+    msg.textContent = `✓ ${email} added.`;
+    msg.className = 'msg success';
+    setTimeout(() => msg.className = 'msg', 3000);
+  }
+
+  async function removeEmail(email) {
+    const msg = document.getElementById('admin-msg');
+    const res = await fetch(WORKER_URL + '/admin/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    renderEmails(data.emails);
+    msg.textContent = `✓ ${email} removed.`;
+    msg.className = 'msg success';
+    setTimeout(() => msg.className = 'msg', 3000);
+  }
+
+  document.getElementById('password-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+</script>
+</body>
+</html>
