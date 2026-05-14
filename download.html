@@ -174,19 +174,19 @@
     </div>
     <div class="info-item">
       <div class="info-item-label">Platform</div>
-      <div class="info-item-value">Linux & Windows</div>
+      <div class="info-item-value">Linux &amp; Windows</div>
     </div>
     <div class="info-item">
       <div class="info-item-label">Status</div>
       <div class="info-item-value" style="color:var(--accent2)">● Private Beta</div>
     </div>
   </div>
-  <a https://pappy1296.github.io/ancliphic.github.io/Ancliphic-Setup-0.1.0-beta.ex
+  <a href="https://pappy1296.github.io/ancliphic.github.io/ancliphic.flatpakref" class="download-btn" id="linux-btn">
     <div class="download-btn-left">
-      <div class="download-btn-icon">🪟</div>
+      <div class="download-btn-icon">🐧</div>
       <div>
-        <div class="download-btn-label">Windows Installer</div>
-        <div class="download-btn-sub">Ancliphic-Setup-0.1.0-beta.exe ↓</div>
+        <div class="download-btn-label">Install on Linux (Flatpak)</div>
+        <div class="download-btn-sub">ancliphic.flatpakref ↓</div>
       </div>
     </div>
     <div class="download-btn-arrow">↓</div>
@@ -210,7 +210,16 @@
       </div>
     </div>
   </div>
-  
+  <a href="https://pappy1296.github.io/ancliphic.github.io/Ancliphic-Setup-0.1.0-beta.exe" class="download-btn secondary">
+    <div class="download-btn-left">
+      <div class="download-btn-icon">🪟</div>
+      <div>
+        <div class="download-btn-label">Windows Installer</div>
+        <div class="download-btn-sub">Ancliphic-Setup-0.1.0-beta.exe ↓</div>
+      </div>
+    </div>
+    <div class="download-btn-arrow">↓</div>
+  </a>
   <hr class="divider" />
   <div class="note">
     <strong>Note:</strong> The installer sets up Ancliphic and configures it to start automatically on login. No Python or dependencies required — everything is bundled.
@@ -225,7 +234,6 @@
   if (!sessionStorage.getItem('ancliphic_accepted')) {
     window.location.href = 'invite.html';
   }
-  document.getElementById('linux-btn').href = 'https://pub-f05a4877c56f4ea795d8bfd7fc08518c.r2.dev/ancliphic.flatpakref';
   function copyCmd(btn, text) {
     navigator.clipboard.writeText(text).then(() => {
       btn.textContent = 'copied!';
