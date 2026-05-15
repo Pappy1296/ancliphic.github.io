@@ -296,15 +296,25 @@
       const { allowed } = await response.json();
 
       if (allowed) {
-        sessionStorage.setItem('ancliphic_invited', email);
-        window.location.href = 'disclaimer.html';
-      } else {
-        errorMsg.innerHTML = '✕ &nbsp;That email isn\'t on the invite list. Contact <a href="mailto:hello@ancliphic.com" style="color:var(--danger)">hello@ancliphic.com</a> to request access.';
-        errorMsg.classList.add('visible');
-        btn.textContent = 'Continue →';
-        btn.style.opacity = '1';
-        btn.style.pointerEvents = 'all';
-      }
+  sessionStorage.setItem('ancliphic_invited', email);
+  
+  // Fire welcome email (non-blocking)
+  try {
+    await fetch('https://divine-poetry-22e2.andrevw001.workers.dev/send-welcome', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+  } catch (e) {
+    // Silent fail — don't block the user if email fails
+  }
+
+  btn.textContent = '✓ Email sent — redirecting...';
+  btn.style.background = 'var(--accent2)';
+  
+  setTimeout(() => {
+    window.location.href = 'disclaimer.html';
+  }, 2000);
     } catch (err) {
       errorMsg.innerHTML = '✕ &nbsp;Something went wrong. Please try again.';
       errorMsg.classList.add('visible');
