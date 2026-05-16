@@ -254,40 +254,43 @@
     <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
   </div>
 
-  <button class="btn" onclick="checkInvite()">Continue →</button>
+  <button class="btn" id="continue-btn" onclick="checkInvite()">Continue →</button>
 
-  <div class="error-msg" id="error-msg">
-    ✕ &nbsp;That email isn't on the invite list. Contact <a href="mailto:hello@ancliphic.com" style="color:var(--danger)">hello@ancliphic.com</a> to request access.
-  </div>
+  <div class="error-msg" id="error-msg"></div>
 
   <a href="index.html" class="back-link">← Back to homepage</a>
 </div>
 
 <footer>
   <span>© 2026 Ancliphic</span>
-  <span>Private Beta — v0.1.0</span>
+  <span>Private Beta — v0.1.1</span>
 </footer>
 
 <script>
-  const WORKER_URL = 'https://divine-poetry-22e2.andrevw001.workers.dev/';
+  const WORKER_URL = 'https://divine-poetry-22e2.andrevw001.workers.dev';
 
   async function checkInvite() {
     const email = document.getElementById('email').value.trim().toLowerCase();
     const errorMsg = document.getElementById('error-msg');
-    const btn = document.querySelector('.btn');
+    const btn = document.getElementById('continue-btn');
+
+    // Reset error
+    errorMsg.classList.remove('visible');
+    errorMsg.innerHTML = '';
 
     if (!email) {
-      errorMsg.innerHTML = '✕  Please enter your email address.';
+      errorMsg.innerHTML = '✕ &nbsp;Please enter your email address.';
       errorMsg.classList.add('visible');
       return;
     }
 
+    // Loading state
     btn.textContent = 'Checking...';
     btn.style.opacity = '0.6';
     btn.style.pointerEvents = 'none';
 
     try {
-      const response = await fetch(WORKER_URL, {
+      const response = await fetch(WORKER_URL + '/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -296,25 +299,32 @@
       const { allowed } = await response.json();
 
       if (allowed) {
-  sessionStorage.setItem('ancliphic_invited', email);
-  
-  // Fire welcome email (non-blocking)
-  try {
-    await fetch('https://divine-poetry-22e2.andrevw001.workers.dev/send-welcome', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-  } catch (e) {
-    // Silent fail — don't block the user if email fails
-  }
+        sessionStorage.setItem('ancliphic_invited', email);
 
-  btn.textContent = '✓ Email sent — redirecting...';
-  btn.style.background = 'var(--accent2)';
-  
-  setTimeout(() => {
-    window.location.href = 'disclaimer.html';
-  }, 2000);
+        // Fire welcome email (non-blocking)
+        try {
+          await fetch(WORKER_URL + '/send-welcome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+        } catch (e) {
+          // Silent fail — don't block the user if email fails
+        }
+
+        btn.textContent = '✓ Confirmed — redirecting...';
+        btn.style.background = 'var(--accent2)';
+        btn.style.opacity = '1';
+        setTimeout(() => { window.location.href = 'disclaimer.html'; }, 2000);
+
+      } else {
+        errorMsg.innerHTML = '✕ &nbsp;That email isn\'t on the invite list. Contact <a href="mailto:hello@ancliphic.com" style="color:var(--danger)">hello@ancliphic.com</a> to request access.';
+        errorMsg.classList.add('visible');
+        btn.textContent = 'Continue →';
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'all';
+      }
+
     } catch (err) {
       errorMsg.innerHTML = '✕ &nbsp;Something went wrong. Please try again.';
       errorMsg.classList.add('visible');
