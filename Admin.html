@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ancliphic — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#080c10;--surface:#0d1117;--surface2:#161b22;--border:#21262d;
+      --accent:#4f8ef7;--accent2:#3fb950;--text:#e6edf3;--muted:#8b949e;
+      --danger:#f85149;--warning:#d29922;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 48px 24px;
+    }
+    .page-header {
+      width: 100%; max-width: 640px; margin-bottom: 32px;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem;
+      letter-spacing: -0.02em;
+    }
+    .page-header span {
+      color: var(--accent); font-family: 'DM Mono', monospace; font-size: 0.75rem;
+      margin-left: 10px; opacity: 0.7;
+    }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 36px 40px;
+      width: 100%; max-width: 640px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+      margin-bottom: 16px;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; gap: 16px; margin-bottom: 0;
+    }
+    .stat {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px;
+    }
+    .stat-label {
+      font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px;
+    }
+    .stat-value {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.5rem;
+      color: var(--text);
+    }
+    .stat-value.accent { color: var(--accent); }
+    .stat-value.green { color: var(--accent2); }
+
+    /* Section label */
+    .section-label {
+      font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.15rem;
+      margin-bottom: 4px;
+    }
+    .card-subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 28px; }
+
+    .input-row {
+      display: flex; gap: 8px; margin-bottom: 16px;
+    }
+    input, textarea {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 11px 16px; color: var(--text);
+      font-family: 'DM Mono', monospace; font-size: 0.9rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.5; }
+    textarea { resize: vertical; min-height: 120px; width: 100%; display: block; }
+
+    .field-label {
+      font-size: 0.78rem; color: var(--muted); margin-bottom: 6px;
+      font-family: 'DM Mono', monospace;
+    }
+    .field { margin-bottom: 14px; }
+    .field input { width: 100%; }
+
+    .btn {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 8px; padding: 11px 20px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+      transition: opacity 0.2s; white-space: nowrap;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.danger { background: var(--danger); }
+    .btn.secondary {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    }
+    .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.full { width: 100%; margin-top: 4px; }
+    .btn.green { background: var(--accent2); }
+
+    .email-list { display: flex; flex-direction: column; gap: 8px; }
+    .email-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 16px;
+    }
+    .email-item span { font-family: 'DM Mono', monospace; font-size: 0.85rem; }
+    .remove-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); font-size: 0.75rem; padding: 3px 10px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .remove-btn:hover { border-color: var(--danger); color: var(--danger); }
+    .empty { color: var(--muted); font-size: 0.85rem; font-family: 'DM Mono', monospace; }
+
+    .msg {
+      padding: 10px 16px; border-radius: 8px; font-size: 0.85rem;
+      margin-bottom: 16px; display: none;
+    }
+    .msg.success { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.25); color: var(--accent2); display: block; }
+    .msg.error { background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.25); color: var(--danger); display: block; }
+    .msg.warning { background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.25); color: var(--warning); display: block; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    .version-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;
+    }
+    .version-grid .field { margin-bottom: 0; }
+
+    .broadcast-note {
+      font-size: 0.78rem; color: var(--muted); margin-top: 10px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* Login */
+    #login-section h1 {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.6rem;
+      margin-bottom: 8px;
+    }
+    #login-section .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+
+    #admin-section { display: none; }
+
+    /* Broadcast result */
+    .broadcast-result {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 16px; margin-top: 12px;
+      font-family: 'DM Mono', monospace; font-size: 0.8rem; display: none;
+    }
+    .broadcast-result.show { display: block; }
+    .br-sent { color: var(--accent2); }
+    .br-failed { color: var(--danger); }
+  </style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="card" id="login-section">
+  <h1>Admin Access</h1>
+  <p class="subtitle">Enter your admin password to manage Ancliphic.</p>
+  <div class="msg" id="login-msg"></div>
+  <div class="input-row">
+    <input type="password" id="password-input" placeholder="Admin password" />
+    <button class="btn" onclick="login()">Unlock</button>
+  </div>
+</div>
+
+<!-- Admin panel -->
+<div id="admin-section" style="width:100%;max-width:640px;">
+
+  <!-- Admin header -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem;">Ancliphic Admin</div>
+    <button class="btn secondary" onclick="logout()" style="padding:8px 16px; font-size:0.8rem;">Logout</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar" style="margin-bottom:16px;">
+    <div class="stat">
+      <div class="stat-label">Beta Users</div>
+      <div class="stat-value accent" id="stat-users">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Live Version</div>
+      <div class="stat-value green" id="stat-version">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Min Version</div>
+      <div class="stat-value" id="stat-min-version">—</div>
+    </div>
+  </div>
+
+  <!-- Invite Manager -->
+  <div class="card">
+    <div class="section-label">Beta Access</div>
+    <div class="card-title">Invite Manager</div>
+    <p class="card-subtitle">Add or remove emails from the beta invite list.</p>
+
+    <div class="msg" id="invite-msg"></div>
+
+    <div class="input-row">
+      <input type="email" id="new-email" placeholder="user@example.com" />
+      <button class="btn" onclick="addEmail()">Add</button>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section-label">Invite List</div>
+    <div class="email-list" id="email-list">
+      <span class="empty">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Version Control -->
+  <div class="card">
+    <div class="section-label">Release</div>
+    <div class="card-title">Version Control</div>
+    <p class="card-subtitle">Set the current release version. The app checks this on startup and prompts users to update.</p>
+
+    <div class="msg" id="version-msg"></div>
+
+    <div class="version-grid">
+      <div class="field">
+        <div class="field-label">Current Version</div>
+        <input type="text" id="v-version" placeholder="0.1.1" />
+      </div>
+      <div class="field">
+        <div class="field-label">Min Version (force update)</div>
+        <input type="text" id="v-min" placeholder="0.1.0" />
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Download URL</div>
+      <input type="text" id="v-url" placeholder="https://pappy1296.github.io/ancliphic.github.io/downloads/..." />
+    </div>
+
+    <div class="field">
+      <div class="field-label">Release Notes</div>
+      <input type="text" id="v-notes" placeholder="Bug fixes and performance improvements" />
+    </div>
+
+    <button class="btn full" onclick="setVersion()">Publish Version</button>
+  </div>
+
+  <!-- Broadcast Email -->
+  <div class="card">
+    <div class="section-label">Communications</div>
+    <div class="card-title">Broadcast Email</div>
+    <p class="card-subtitle">Send an email to all beta users on the invite list.</p>
+
+    <div class="msg" id="broadcast-msg"></div>
+
+    <div class="field">
+      <div class="field-label">Subject</div>
+      <input type="text" id="bc-subject" placeholder="Ancliphic v0.1.1 is live" />
+    </div>
+
+    <div class="field">
+      <div class="field-label">Message (HTML supported)</div>
+      <textarea id="bc-body" placeholder="Write your message here. You can use basic HTML like &lt;b&gt;bold&lt;/b&gt; or &lt;br/&gt; for line breaks."></textarea>
+    </div>
+
+    <button class="btn full green" id="broadcast-btn" onclick="sendBroadcast()">Send to All Beta Users</button>
+    <p class="broadcast-note" id="bc-count"></p>
+
+    <div class="broadcast-result" id="broadcast-result"></div>
+  </div>
+
+</div>
+
+<script>
+  const WORKER_URL = 'https://divine-poetry-22e2.andrevw001.workers.dev';
+  let adminPassword = '';
+  let currentEmails = [];
+
+  async function login() {
+    const pw = document.getElementById('password-input').value;
+    const msg = document.getElementById('login-msg');
+    try {
+      const res = await fetch(WORKER_URL + '/admin/list', {
+        headers: { 'X-Admin-Password': pw }
+      });
+      const data = await res.json();
+      if (res.status === 401) {
+        msg.textContent = '✕ Incorrect password.';
+        msg.className = 'msg error';
+        return;
+      }
+      adminPassword = pw;
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('admin-section').style.display = 'block';
+      currentEmails = data.emails || [];
+      renderEmails(currentEmails);
+      updateStats();
+      loadVersion();
+    } catch (e) {
+      msg.textContent = '✕ Could not connect to server.';
+      msg.className = 'msg error';
+    }
+  }
+
+  function updateStats() {
+    document.getElementById('stat-users').textContent = currentEmails.length;
+    document.getElementById('bc-count').textContent =
+      `Will send to ${currentEmails.length} user${currentEmails.length !== 1 ? 's' : ''}.`;
+  }
+
+  async function loadVersion() {
+    try {
+      const res = await fetch(WORKER_URL + '/version');
+      if (!res.ok) return;
+      const data = await res.json();
+      document.getElementById('stat-version').textContent = data.version || '—';
+      document.getElementById('stat-min-version').textContent = data.min_version || '—';
+      document.getElementById('v-version').value = data.version || '';
+      document.getElementById('v-min').value = data.min_version || '';
+      document.getElementById('v-url').value = data.download_url || '';
+      document.getElementById('v-notes').value = data.notes || '';
+    } catch (e) {}
+  }
+
+  function renderEmails(emails) {
+    const list = document.getElementById('email-list');
+    currentEmails = emails;
+    updateStats();
+    if (!emails || emails.length === 0) {
+      list.innerHTML = '<span class="empty">No emails on the invite list.</span>';
+      return;
+    }
+    list.innerHTML = emails.map(e => `
+      <div class="email-item">
+        <span>${e}</span>
+        <button class="remove-btn" onclick="removeEmail('${e}')">Remove</button>
+      </div>
+    `).join('');
+  }
+
+  async function addEmail() {
+    const email = document.getElementById('new-email').value.trim();
+    const msg = document.getElementById('invite-msg');
+    if (!email) return;
+    const res = await fetch(WORKER_URL + '/admin/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    renderEmails(data.emails);
+    document.getElementById('new-email').value = '';
+    showMsg('invite-msg', `✓ ${email} added.`, 'success');
+  }
+
+  async function removeEmail(email) {
+    const res = await fetch(WORKER_URL + '/admin/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    renderEmails(data.emails);
+    showMsg('invite-msg', `✓ ${email} removed.`, 'success');
+  }
+
+  async function setVersion() {
+    const version = document.getElementById('v-version').value.trim();
+    const min_version = document.getElementById('v-min').value.trim();
+    const download_url = document.getElementById('v-url').value.trim();
+    const notes = document.getElementById('v-notes').value.trim();
+    if (!version) { showMsg('version-msg', '✕ Version is required.', 'error'); return; }
+    const res = await fetch(WORKER_URL + '/admin/set-version', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword },
+      body: JSON.stringify({ version, min_version, download_url, notes })
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg('version-msg', '✕ Failed to update version.', 'error'); return; }
+    document.getElementById('stat-version').textContent = version;
+    document.getElementById('stat-min-version').textContent = min_version || '—';
+    showMsg('version-msg', `✓ Version ${version} published.`, 'success');
+  }
+
+  async function sendBroadcast() {
+    const subject = document.getElementById('bc-subject').value.trim();
+    const body = document.getElementById('bc-body').value.trim();
+    const msg = document.getElementById('broadcast-msg');
+    const result = document.getElementById('broadcast-result');
+    const btn = document.getElementById('broadcast-btn');
+
+    if (!subject || !body) { showMsg('broadcast-msg', '✕ Subject and message are required.', 'error'); return; }
+    if (currentEmails.length === 0) { showMsg('broadcast-msg', '✕ No users on the invite list.', 'error'); return; }
+
+    const confirmed = confirm(`Send "${subject}" to ${currentEmails.length} user(s)?`);
+    if (!confirmed) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    const html = body.replace(/\n/g, '<br/>');
+    const wrappedHtml = `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #e6edf3; background: #0d1117; padding: 40px; border-radius: 12px;">
+        ${html}
+        <br/><br/><p style="color: #8b949e;">— André, Ancliphic</p>
+      </div>`;
+
+    const res = await fetch(WORKER_URL + '/admin/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPassword },
+      body: JSON.stringify({ subject, html: wrappedHtml })
+    });
+    const data = await res.json();
+
+    btn.disabled = false;
+    btn.textContent = 'Send to All Beta Users';
+
+    if (!res.ok) { showMsg('broadcast-msg', '✕ Broadcast failed.', 'error'); return; }
+
+    let resultHtml = `<span class="br-sent">✓ Sent to ${data.sent} user${data.sent !== 1 ? 's' : ''}.</span>`;
+    if (data.failed && data.failed.length > 0) {
+      resultHtml += `<br/><span class="br-failed">✕ Failed: ${data.failed.join(', ')}</span>`;
+    }
+    result.innerHTML = resultHtml;
+    result.classList.add('show');
+    showMsg('broadcast-msg', `✓ Broadcast complete.`, 'success');
+  }
+
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = `msg ${type}`;
+    setTimeout(() => el.className = 'msg', 4000);
+  }
+
+  function logout() {
+    adminPassword = '';
+    currentEmails = [];
+    document.getElementById('admin-section').style.display = 'none';
+    document.getElementById('login-section').style.display = 'block';
+    document.getElementById('password-input').value = '';
+    document.getElementById('login-msg').className = 'msg';
+  }
+
+  document.getElementById('password-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+</script>
+</body>
+</html>
